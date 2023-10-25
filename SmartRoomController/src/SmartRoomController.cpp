@@ -73,7 +73,8 @@ Serial.begin(9600);
 while(!Serial);
 pinMode(PHOTODIODE, INPUT);
 
-display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+// display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+//display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
 
 status = bme.begin(0x76);
     if(status==false){
@@ -98,6 +99,24 @@ HUE6=map(POSITION, 0, 96, 1, 5);
 
 POSITION=myEnc.read();
 
+display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+tempC= bme.readTemperature();//BME
+pressPa=bme.readPressure();
+humidRH=bme.readHumidity();
+
+//OLED
+//onTimer.startTimer(5000);
+display.setTextSize(2);
+display.setTextColor(WHITE);
+display.setCursor(10,0);
+display.clearDisplay();
+display.printf("TF %0.1f\n BP %0.2f\n HM %0.2f\n LT %i\n", tempF, inHg, humidRH, LIGHT);
+display.display();
+//onTimer.startTimer(5000);
+
+currentTime=millis();
+
+//switch seperating the automatic from the manual
 if (mySwitch.isClicked()){
   switchState=!switchState;
 }
@@ -118,6 +137,7 @@ if(myButton.isClicked()){//encoder button controlling hue light
    buttonState=!buttonState;
 }
 if(buttonState){
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(10,0);
@@ -129,6 +149,7 @@ if(buttonState){
     //color++;
 }
 else{
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
   setHue(BULB,false);
   setHue(BULB1,false);
   display.setTextSize(2);
@@ -148,6 +169,7 @@ Serial.printf("lightness %i\n", LIGHT);
 
 //hue light coming on automatically under 65 and going off over 200
 if(LIGHT<65){
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(10,0);
@@ -158,6 +180,7 @@ if(LIGHT<65){
   setHue(BULB1,true,50000,100,255);
 }
 if (LIGHT>200){
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(10,0);
@@ -168,21 +191,7 @@ if (LIGHT>200){
   setHue(BULB1, false, 50000, 100, 255);
 }
 
-tempC= bme.readTemperature();//BME
-pressPa=bme.readPressure();
-humidRH=bme.readHumidity();
 
-//OLED
-onTimer.startTimer(5000);
-display.setTextSize(2);
-display.setTextColor(WHITE);
-display.setCursor(10,0);
-display.clearDisplay();
-display.printf("TF %0.1f\n BP %0.2f\n HM %0.2f\n LT %i\n", tempF, inHg, humidRH, LIGHT);
-display.display();
-//onTimer.startTimer(5000);
-
-currentTime=millis();
 
 }
 }
