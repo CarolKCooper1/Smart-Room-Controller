@@ -34,8 +34,11 @@ float tempF;
 float inHg;
 bool status;
 
-const int BULB=1;// Hue lights varible set
-const int BULB1=5;
+const int BULB1=1;// Hue lights varible set
+const int BULB2=2;
+const int BULB3=3;
+const int BULB4=4;
+const int BULB5=5;
 int HUE6;
 int color;
 int myBulbs[]={1,2,3,4,5};
@@ -183,13 +186,19 @@ if(buttonState){
   display.clearDisplay();
   display.printf("Hue light is on\n");
   display.display();
-  setHue(BULB,true,HueRed,100,255);
+  setHue(BULB5,true,HueRed,100,255);
   setHue(BULB1,true,HueBlue,100,255);
+  setHue(BULB2,true,HueOrange,100,255);
+  setHue(BULB3,true,HueGreen,100,255);
+  setHue(BULB4,true,HueViolet,100,255);
     //color++;
 }
 else{
-  setHue(BULB,false);
-  setHue(BULB1,false);
+  setHue(BULB5,false,HueRed,100,255);
+  setHue(BULB1,false,HueBlue,100,255);
+  setHue(BULB2,false,HueOrange,100,255);
+  setHue(BULB3,false,HueGreen,100,255);
+  setHue(BULB4,false,HueViolet,100,255);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,32);
@@ -210,9 +219,12 @@ if(LIGHT<20){
   display.clearDisplay();
   display.printf("Too Dark, Lights on\n");
   display.display();
-  setHue(BULB1,true,HueIndigo,100,255);
-  setHue(BULB, true,HueViolet,255,255);
-}
+  setHue(BULB1,true,HueIndigo,255,255);
+  setHue(BULB5,true,HueViolet,255,255);
+  setHue(BULB2,true,HueRed,255,255);
+  setHue(BULB3,true,HueGreen,255,255);
+  setHue(BULB4,true,HueBlue,255,255);
+
 if(LIGHT>200){
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -220,8 +232,11 @@ if(LIGHT>200){
   display.clearDisplay();
   display.printf("Too Bright, Lights off\n");
   display.display();
-  setHue(BULB1,false);
-  setHue(BULB,false);
+  setHue(BULB1,false,HueIndigo,100,255);
+  setHue(BULB5,false,HueViolet,255,255);
+  setHue(BULB2,false,HueRed,255,255);
+  setHue(BULB3,false,HueGreen,255,255);
+  setHue(BULB4,false,HueBlue,255,255);
 }
 
 if(humidRH<30){
