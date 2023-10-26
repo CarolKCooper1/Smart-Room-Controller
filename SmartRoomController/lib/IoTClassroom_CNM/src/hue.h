@@ -55,7 +55,9 @@ bool setHue(int lightNum, bool HueOn, int HueColor, int HueBright, int HueSat) {
 
   String command = "";  
 
-  if((lightNum==PrevLightNum)&&(HueOn==PrevOn)&&(HueColor==PrevColor)&&(HueBright==PrevBright)&&(HueSat==PrevSat)) {
+  //if((lightNum==PrevLightNum)&&(HueOn==PrevOn)&&(HueColor==PrevColor)&&(HueBright==PrevBright)&&(HueSat==PrevSat)) {
+  if((HueOn==PrevOn)&&(HueColor==PrevColor)&&(HueBright==PrevBright)&&(HueSat==PrevSat)) {
+ 
     Serial.printf("No Change - Cancelling CMD\n");
     return false;
   }

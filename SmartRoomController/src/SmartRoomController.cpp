@@ -20,6 +20,10 @@
 #define XPOS 0;
 #define YPOS 1;
 
+//char hConditions[10]; 
+//char lConditions[10];
+
+
 int PHOTODIODE=A1;//photodiode variable set
 int LIGHT;
 int DARK;
@@ -52,7 +56,7 @@ const int MINPOS=0;
 const int MAXPOS=96;
 Encoder myEnc(D9, D8);
 
-const int SWITCH=D6;//switch
+const int SWITCH=D6;//switches get stitches
 bool switchState; 
 Button mySwitch(SWITCH);
 
@@ -60,8 +64,21 @@ IoTTimer onTimer;
 IoTTimer offTimer;
 unsigned int currentTime;
 
+//wemo
+const int MYWEMO2=2;
+const int MYWEMO3=4;
+//const int MYWEMO4=4;
+const int BUTTON2=D5;
+const int BUTTON3=D3;
+//const int BUTTON4=D4;
+Button myButton2 (BUTTON2);
+Button myButton3 (BUTTON3);
+//Button myButton4 (BUTTON4);
+bool wemoState3;
+bool wemoState2;
 
 Adafruit_SSD1306 display(OLED_RESET);//OLED display
+Adafruit_SSD1306 display2(OLED_RESET);
 Adafruit_BME280 bme;
 
 // Let Device OS manage the connection to the Particle Cloud
@@ -71,10 +88,8 @@ SYSTEM_MODE(SEMI_AUTOMATIC);
 void setup() {
 Serial.begin(9600);
 while(!Serial);
+waitFor(Serial.isConnected, 15000);
 pinMode(PHOTODIODE, INPUT);
-
-// display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-//display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
 
 status = bme.begin(0x76);
     if(status==false){
@@ -87,6 +102,9 @@ WiFi.connect();
 while(WiFi.connecting()){
   Serial.printf(".");
 }
+display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+display2.begin(SSD1306_SWITCHCAPVCC, 0x3D);
+
 }
 
 // loop() runs over and over again, as quickly as it can execute.
@@ -99,27 +117,27 @@ HUE6=map(POSITION, 0, 96, 1, 5);
 
 POSITION=myEnc.read();
 
-display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-tempC= bme.readTemperature();//BME
+currentTime=millis();
+
+LIGHT=analogRead(PHOTODIODE);//light sensor
+
+tempC=bme.readTemperature();//BME
 pressPa=bme.readPressure();
 humidRH=bme.readHumidity();
 
 //OLED
-//onTimer.startTimer(5000);
-display.setTextSize(2);
-display.setTextColor(WHITE);
-display.setCursor(10,0);
-display.clearDisplay();
-display.printf("TF %0.1f\n BP %0.2f\n HM %0.2f\n LT %i\n", tempF, inHg, humidRH, LIGHT);
-display.display();
-//onTimer.startTimer(5000);
-
-currentTime=millis();
+// onTimer.startTimer(5000);
+display2.setTextSize(2);
+display2.setTextColor(WHITE);
+display2.setCursor(10,0);
+display2.clearDisplay();
+display2.printf("TF %0.1f\n BP %0.2f\n HM %0.2f\n LT %i\n", tempF, inHg, humidRH, LIGHT);
+display2.display();
 
 //switch seperating the automatic from the manual
 if (mySwitch.isClicked()){
   switchState=!switchState;
-}
+}//manual state
 if (switchState){
 if (POSITION!=prevPosition){//bind encoder to 5 positions
   prevPosition = POSITION;
@@ -132,25 +150,65 @@ if (POSITION> MAXPOS){
   POSITION=MAXPOS;
   myEnc.write(MAXPOS);
 }
-
+// if(myButton4.isClicked()){//Wemo 4
+//   wemoState4=!wemoState4;
+// }
+// if(wemoState4){
+//   wemoWrite(MYWEMO4,HIGH);
+//   Serial.printf("Turning on Wemo %i\n", MYWEMO4);
+// }
+// else{
+//   wemoWrite(MYWEMO4,LOW);
+//   Serial.printf("Turning off Wemo %i\n", MYWEMO4);
+// if(myButton4.isClicked()){//Wemo 0
+//   wemoState4=!wemoState4;
+// }
+// if(wemoState4){
+//   wemoWrite(MYWEMO4,wemoState4);
+//   Serial.printf("Turning on Wemo %i\n", MYWEMO4);
+// }
+// else{
+//   wemoWrite(MYWEMO4,wemoState4);
+//   Serial.printf("Turning off Wemo %i\n", MYWEMO4);
+// }
+if(myButton3.isClicked()){//Wemo 0
+  wemoState3=!wemoState3;
+}
+if(wemoState3){
+  wemoWrite(MYWEMO3,wemoState3);
+  Serial.printf("Turning on Wemo %i\n", MYWEMO3);
+}
+else{
+  wemoWrite(MYWEMO3,wemoState3);
+  Serial.printf("Turning off Wemo %i\n", MYWEMO3);
+}
+if(myButton2.isClicked()){//Wemo 2
+  wemoState2=!wemoState2;
+}
+if(wemoState2){
+  wemoWrite(MYWEMO2,wemoState2);
+  Serial.printf("Turning on Wemo %i\n", MYWEMO2);
+}
+else{
+  wemoWrite(MYWEMO2,wemoState2);
+  Serial.printf("Turning off Wemo %i|n", MYWEMO2);
+}
 if(myButton.isClicked()){//encoder button controlling hue light
    buttonState=!buttonState;
 }
 if(buttonState){
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(10,0);
   display.clearDisplay();
   display.printf("Hue light is on\n");
   display.display();
-  setHue(BULB,true,50000,100,255);
-  setHue(BULB1,true,20000,100,255);
+  //setHue(BULB,true,50000,100,255);
+  setHue(BULB1,true,50000,100,255);
     //color++;
 }
 else{
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
-  setHue(BULB,false);
+  //setHue(BULB,false);
   setHue(BULB1,false);
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -162,36 +220,60 @@ else{
 }
 }
 if(!switchState){
-
-LIGHT=analogRead(PHOTODIODE);//light sensor
-Serial.printf("lightness %i\n", LIGHT);
-//delay(1000);
+//automatic state
 
 //hue light coming on automatically under 65 and going off over 200
 if(LIGHT<65){
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(10,0);
-  display.clearDisplay();
-  display.printf("Too Dark, Lights on\n");
-  display.display();
-  setHue(BULB,true,50000,100,255);
+  char lConditions[10]="Dark";
+  // display.setTextSize(2);
+  // display.setTextColor(WHITE);
+  // display.setCursor(10,0);
+  // display.clearDisplay();
+  // display.printf("Too Dark, Lights on\n");
+  // display.display();
+  //setHue(BULB,true,50000,100,255);
   setHue(BULB1,true,50000,100,255);
+
 }
-if (LIGHT>200){
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(10,0);
-  display.clearDisplay();
-  display.printf("Too Bright, Lights off\n");
-  display.display();
-  setHue(BULB, false, 50000, 100, 255);
+if(LIGHT>200){
+  // char lConditions[10]="Bright";
+  // display.setTextSize(2);
+  // display.setTextColor(WHITE);
+  // display.setCursor(10,0);
+  // display.clearDisplay();
+  // display.printf("Too Bright, Lights off\n");
+  // display.display();
+  //setHue(BULB, false, 50000, 100, 255);
   setHue(BULB1, false, 50000, 100, 255);
 }
-
-
-
+if(humidRH<40){
+  // char hConditions[10]="Low";
+  wemoWrite(MYWEMO3,HIGH);
+  // display.setTextSize(2);
+  // display.setTextColor(WHITE);
+  // display.setCursor(10,0);
+  // display.clearDisplay();
+  // display.printf("Humidity Low\n");
+  // display.display();
+}
+if(humidRH>55){
+  // char hConditions[10]="High";
+  wemoWrite(MYWEMO3,LOW);
+  // display.setTextSize(2);
+  // display.setTextColor(WHITE);
+  // display.setCursor(10,0);
+  // display.clearDisplay();
+  // display.printf("Humidity High\n");
+  // display.display();
+}
+// if (tempF<75){
+//   wemoWrite(MYWEMO2, HIGH);
+// display.setTextSize(1);
+// display.setTextColor(WHITE);
+// display.setCursor(10,0);
+// display.clearDisplay();
+// display.printf("lights are too %s, humidity is too %s\n", lConditions, hConditions);
+// display.display();
 }
 }
+
