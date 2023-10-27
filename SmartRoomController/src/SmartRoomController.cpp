@@ -44,7 +44,8 @@ const int BULB5=5;
 const int BULB6=6;
 int HUE6;
 int color;
-int myBulbs[]={1,2,3,4,5};
+int myBulbs[]={1,2,3,4,5,6};
+int huePosition;
 // bool onOff;
 // void hueFill(int start, int end, int color);
 
@@ -115,13 +116,13 @@ status = bme.begin(0x76);
   if(status==false){
         Serial.printf("BME at address 0x%02X failed to start", 0x76);
     }
-WiFi.on();
-WiFi.clearCredentials();
-WiFi.setCredentials("IoTNetwork");
-WiFi.connect();
-while(WiFi.connecting()){
-  Serial.printf(".");
-}
+// WiFi.on();
+// WiFi.clearCredentials();
+// WiFi.setCredentials("IoTNetwork");
+// WiFi.connect();
+// while(WiFi.connecting()){
+//   Serial.printf(".");
+// }
 display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 display2.begin(SSD1306_SWITCHCAPVCC, 0x3D);
 
@@ -141,8 +142,8 @@ HUE6=map(POSITION, 0, 96, 0, 6);
 
 POSITION=myEnc.read();
 
-if(HUE6!=prevPosition){
-  prevPosition = HUE6;
+if(HUE6!=huePosition){
+  huePosition = HUE6;
 }
 Serial.printf("hue6 position is%i\n",HUE6);
 
@@ -170,7 +171,7 @@ if (POSITION > MAXPOS){
 for(i=0; i<=HUE6; i++) {
     //start = i*1;
     //HUE6 = start +1;
-    pixelFill(0, HUE6, rainbow[HUE6]);
+    pixelFill(5, HUE6, rainbow[HUE6]);
   
 }
 // hueFill(i=0, i>6, HueRainbow[i]);
@@ -199,41 +200,41 @@ if (mySwitch.isClicked()){
 //manual state
 if(switchState){
 
-// if(myButton4.isClicked()){//Wemo 4
-//   wemoState4=!wemoState4;
-// }
-// if(wemoState4){
-//   wemoWrite(MYWEMO4,wemoState4);
-//   Serial.printf("Turning on Wemo %i\n", MYWEMO4);
-// }
-// else{
-//   wemoWrite(MYWEMO4,wemoState4);
-//   Serial.printf("Turning off Wemo %i\n", MYWEMO4);
-// }
+if(myButton4.isClicked()){//Wemo 4
+  wemoState4=!wemoState4;
+}
+if(wemoState4){
+  wemoWrite(MYWEMO4,wemoState4);
+  Serial.printf("Turning on Wemo %i\n", MYWEMO4);
+}
+else{
+  wemoWrite(MYWEMO4,wemoState4);
+  Serial.printf("Turning off Wemo %i\n", MYWEMO4);
+}
 
-// if(myButton3.isClicked()){//Wemo 0
-//   wemoState3=!wemoState3;
-// }
-// if(wemoState3){
-//   wemoWrite(MYWEMO3,wemoState3);
-//  Serial.printf("Turning on Wemo %i\n", MYWEMO3);
-// }
-// else{
-//   wemoWrite(MYWEMO3,wemoState3);
-//   Serial.printf("Turning off Wemo %i\n", MYWEMO3);
-// }
+if(myButton3.isClicked()){//Wemo 3
+  wemoState3=!wemoState3;
+}
+if(wemoState3){
+  wemoWrite(MYWEMO3,wemoState3);
+ Serial.printf("Turning on Wemo %i\n", MYWEMO3);
+}
+else{
+  wemoWrite(MYWEMO3,wemoState3);
+  Serial.printf("Turning off Wemo %i\n", MYWEMO3);
+}
 
-// if(myButton2.isClicked()){//Wemo 2
-//   wemoState2=!wemoState2;
-// }
-// if(wemoState2){
-//   wemoWrite(MYWEMO2,wemoState2);
-//   //Serial.printf("Turning on Wemo %i\n", MYWEMO2);
-// }
-// else{
-//   wemoWrite(MYWEMO2,wemoState2);
-//   Serial.printf("Turning off Wemo %i|n", MYWEMO2);
-// }
+if(myButton2.isClicked()){//Wemo 2
+  wemoState2=!wemoState2;
+}
+if(wemoState2){
+  wemoWrite(MYWEMO2,wemoState2);
+  //Serial.printf("Turning on Wemo %i\n", MYWEMO2);
+}
+else{
+  wemoWrite(MYWEMO2,wemoState2);
+  Serial.printf("Turning off Wemo %i|n", MYWEMO2);
+}
 
 if(myButton.isClicked()){//encoder button controlling hue light
    buttonState=!buttonState;
@@ -246,20 +247,20 @@ if(buttonState){
   display.printf("Hue light is on\n");
   display.display();
   setHue(BULB5,true,HueRed,100,255);
-  // setHue(BULB1,true,HueBlue,100,255);
-  // setHue(BULB2,true,HueOrange,100,255);
-  // setHue(BULB3,true,HueGreen,100,255);
-  // setHue(BULB4,true,HueViolet,100,255);
-  // setHue(BULB6,true,HueIndigo,100,255);
+  setHue(BULB1,true,HueBlue,100,255);
+  setHue(BULB2,true,HueOrange,100,255);
+  setHue(BULB3,true,HueGreen,100,255);
+  setHue(BULB4,true,HueViolet,100,255);
+  setHue(BULB6,true,HueIndigo,100,255);
     // color++;
 }
 else{
   setHue(BULB5,false,HueRed,100,255);
-  // setHue(BULB1,false,HueBlue,100,255);
-  // setHue(BULB2,false,HueOrange,100,255);
-  // setHue(BULB3,false,HueGreen,100,255);
-  // setHue(BULB4,false,HueViolet,100,255);
-  // setHue(BULB6,false,HueIndigo,100,255);
+  setHue(BULB1,false,HueBlue,100,255);
+  setHue(BULB2,false,HueOrange,100,255);
+  setHue(BULB3,false,HueGreen,100,255);
+  setHue(BULB4,false,HueViolet,100,255);
+  setHue(BULB6,false,HueIndigo,100,255);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,32);
@@ -273,19 +274,19 @@ if(!switchState){
 //automatic state
 
 //hue light coming on automatically under 20 and going off over 200
-if(LIGHT<20){
+if(LIGHT<15){
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,32);
   display.clearDisplay();
-  display.printf("Too Dark, Lights on\n");
+  display.printf("Lights on\n");
   display.display();
-  // setHue(BULB1,true,HueIndigo,255,255);
+  setHue(BULB1,true,HueIndigo,255,255);
   setHue(BULB5,true,HueViolet,255,255);
-  // setHue(BULB2,true,HueRed,255,255);
-  // setHue(BULB3,true,HueGreen,255,255);
-  // setHue(BULB4,true,HueBlue,255,255);
- // setHue(BULB6,true,HueIndigo,100,255);
+  setHue(BULB2,true,HueRed,255,255);
+  setHue(BULB3,true,HueGreen,255,255);
+  setHue(BULB4,true,HueBlue,255,255);
+  setHue(BULB6,true,HueOrange,100,255);
 }
 if(LIGHT>200){
   display.setTextSize(2);
@@ -294,12 +295,12 @@ if(LIGHT>200){
   display.clearDisplay();
   display.printf("Too Bright, Lights off\n");
   display.display();
-  // setHue(BULB1,false,HueIndigo,100,255);
+  setHue(BULB1,false,HueIndigo,100,255);
   setHue(BULB5,false,HueViolet,255,255);
-  // setHue(BULB2,false,HueRed,255,255);
-  // setHue(BULB3,false,HueGreen,255,255);
-  // setHue(BULB4,false,HueBlue,255,255);
-  // setHue(BULB6,false,HueIndigo,100,255);
+  setHue(BULB2,false,HueRed,255,255);
+  setHue(BULB3,false,HueGreen,255,255);
+  setHue(BULB4,false,HueBlue,255,255);
+  setHue(BULB6,false,HueOrange,100,255);
 }
 
 if(humidRH<30){
@@ -308,7 +309,7 @@ if(humidRH<30){
   display.setTextColor(WHITE);
   display.setCursor(0,0);
   display.clearDisplay();
-  display.printf("Humidity Low\n");
+  display.printf("Humidifier On\n");
   display.display();
 }
 if(humidRH>50){
@@ -317,7 +318,7 @@ if(humidRH>50){
   display.setTextColor(WHITE);
   display.setCursor(0,0);
   display.clearDisplay();
-  display.printf("Humidity High\n");
+  display.printf("Humidifier off\n");
   display.display();
 }
 if(tempF>75){
@@ -332,6 +333,16 @@ if(tempF>75){
 if(tempF<72){
   wemoWrite(MYWEMO3, LOW);
 }
+if(LIGHT<5){
+  wemoWrite(MYWEMO4, HIGH);
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.clearDisplay();
+  display.printf("Spotlight on\n");
+  display.display();
+}
+
 }
 }
 void pixelFill(int start, int end, int color){
@@ -347,8 +358,10 @@ void pixelFill(int start, int end, int color){
 }
 // void hueFill(int start, int end, int color){
 //   if(myButton.isClicked){
-//     onOff!=onOff;
+//     buttonState!=buttonState;
 //   }
-//   setHue(HUE6, onOff, HueViolet, 255, 255);
+//   setHue(HUE6, buttonState, HueViolet, 255, 255);
+//    myBulbs[i]=HUE6;
+//    0=BULB1;
 // }
 
