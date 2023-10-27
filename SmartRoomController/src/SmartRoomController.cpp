@@ -16,7 +16,7 @@
 #include "IoTClassroom_CNM.h"
 #include <Encoder.h>
 #include <neopixel.h>
-
+#include "Colors.h"
 
 #define OLED_RESET D4
 #define XPOS 0;
@@ -41,9 +41,12 @@ const int BULB2=2;
 const int BULB3=3;
 const int BULB4=4;
 const int BULB5=5;
+const int BULB6=6;
 int HUE6;
 int color;
 int myBulbs[]={1,2,3,4,5};
+// bool onOff;
+// void hueFill(int start, int end, int color);
 
 const int BUTTON=D15;// Encoder button
 int COLOR;
@@ -78,17 +81,20 @@ Button myButton4 (BUTTON4);
 bool wemoState3;
 bool wemoState2;
 bool wemoState4;
+int prevWemoState2;
+int prevWemoState3;
+int prevWemoState4;
 
 //neopixels
 //void pixelFill(int start, int end, int color);
-int start;
-int end;
 int i;
 int j;
 int pix16;
+int start;
+int end;  
 const int PIXELCOUNT = 16;
 const int LEDDELAY = 50;
-
+void pixelFill(int start, int end, int color);
 
 Adafruit_SSD1306 display(OLED_RESET);//OLED display
 Adafruit_SSD1306 display2(OLED_RESET);
@@ -130,11 +136,25 @@ void loop() {
 tempF=map(tempC,0.0,100.0,32.0,212.0);//BME maps
 inHg=map(pressPa,3386.0,108364.0,1.0,32.0);
 
-HUE6=map(POSITION, 0, 96, 0, 5);
+HUE6=map(POSITION, 0, 96, 0, 6);
 //pix16=map(POSITION, 0, 96, 0, 15);
 
 POSITION=myEnc.read();
 
+if(HUE6!=prevPosition){
+  prevPosition = HUE6;
+}
+Serial.printf("hue6 position is%i\n",HUE6);
+
+// if(wemoState2!=prevWemoState2){
+//    prevWemoState2=wemoState2;
+// }
+// if(wemoState3!=prevWemoState3){
+//    prevWemoState3=wemoState3;
+// }
+// if(wemoState4!=prevWemoState4){
+//    prevWemoState4=wemoState4;
+// }
 if (POSITION!=prevPosition){
   prevPosition = POSITION;
 }
@@ -147,10 +167,13 @@ if (POSITION > MAXPOS){
   POSITION=MAXPOS;
   myEnc.write(MAXPOS);
 }
-  for(i=0; i<16; i=i+2)
-      pixel.setPixelColor(HUE6,255, 0, 255);//neopixels
-      pixel.show();
-      pixel.clear();
+for(i=0; i<=HUE6; i++) {
+    //start = i*1;
+    //HUE6 = start +1;
+    pixelFill(0, HUE6, rainbow[HUE6]);
+  
+}
+// hueFill(i=0, i>6, HueRainbow[i]);
 
 LIGHT=analogRead(PHOTODIODE);//light sensor
 
@@ -176,41 +199,41 @@ if (mySwitch.isClicked()){
 //manual state
 if(switchState){
 
-if(myButton4.isClicked()){//Wemo 4
-  wemoState4=!wemoState4;
-}
-if(wemoState4){
-  wemoWrite(MYWEMO4,wemoState4);
-  Serial.printf("Turning on Wemo %i\n", MYWEMO4);
-}
-else{
-  wemoWrite(MYWEMO4,wemoState4);
-  Serial.printf("Turning off Wemo %i\n", MYWEMO4);
-}
+// if(myButton4.isClicked()){//Wemo 4
+//   wemoState4=!wemoState4;
+// }
+// if(wemoState4){
+//   wemoWrite(MYWEMO4,wemoState4);
+//   Serial.printf("Turning on Wemo %i\n", MYWEMO4);
+// }
+// else{
+//   wemoWrite(MYWEMO4,wemoState4);
+//   Serial.printf("Turning off Wemo %i\n", MYWEMO4);
+// }
 
-if(myButton3.isClicked()){//Wemo 0
-  wemoState3=!wemoState3;
-}
-if(wemoState3){
-  wemoWrite(MYWEMO3,wemoState3);
-  Serial.printf("Turning on Wemo %i\n", MYWEMO3);
-}
-else{
-  wemoWrite(MYWEMO3,wemoState3);
-  Serial.printf("Turning off Wemo %i\n", MYWEMO3);
-}
+// if(myButton3.isClicked()){//Wemo 0
+//   wemoState3=!wemoState3;
+// }
+// if(wemoState3){
+//   wemoWrite(MYWEMO3,wemoState3);
+//  Serial.printf("Turning on Wemo %i\n", MYWEMO3);
+// }
+// else{
+//   wemoWrite(MYWEMO3,wemoState3);
+//   Serial.printf("Turning off Wemo %i\n", MYWEMO3);
+// }
 
-if(myButton2.isClicked()){//Wemo 2
-  wemoState2=!wemoState2;
-}
-if(wemoState2){
-  wemoWrite(MYWEMO2,wemoState2);
-  Serial.printf("Turning on Wemo %i\n", MYWEMO2);
-}
-else{
-  wemoWrite(MYWEMO2,wemoState2);
-  Serial.printf("Turning off Wemo %i|n", MYWEMO2);
-}
+// if(myButton2.isClicked()){//Wemo 2
+//   wemoState2=!wemoState2;
+// }
+// if(wemoState2){
+//   wemoWrite(MYWEMO2,wemoState2);
+//   //Serial.printf("Turning on Wemo %i\n", MYWEMO2);
+// }
+// else{
+//   wemoWrite(MYWEMO2,wemoState2);
+//   Serial.printf("Turning off Wemo %i|n", MYWEMO2);
+// }
 
 if(myButton.isClicked()){//encoder button controlling hue light
    buttonState=!buttonState;
@@ -227,7 +250,8 @@ if(buttonState){
   // setHue(BULB2,true,HueOrange,100,255);
   // setHue(BULB3,true,HueGreen,100,255);
   // setHue(BULB4,true,HueViolet,100,255);
-    //color++;
+  // setHue(BULB6,true,HueIndigo,100,255);
+    // color++;
 }
 else{
   setHue(BULB5,false,HueRed,100,255);
@@ -235,6 +259,7 @@ else{
   // setHue(BULB2,false,HueOrange,100,255);
   // setHue(BULB3,false,HueGreen,100,255);
   // setHue(BULB4,false,HueViolet,100,255);
+  // setHue(BULB6,false,HueIndigo,100,255);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,32);
@@ -255,11 +280,12 @@ if(LIGHT<20){
   display.clearDisplay();
   display.printf("Too Dark, Lights on\n");
   display.display();
-  setHue(BULB1,true,HueIndigo,255,255);
-  // setHue(BULB5,true,HueViolet,255,255);
+  // setHue(BULB1,true,HueIndigo,255,255);
+  setHue(BULB5,true,HueViolet,255,255);
   // setHue(BULB2,true,HueRed,255,255);
   // setHue(BULB3,true,HueGreen,255,255);
   // setHue(BULB4,true,HueBlue,255,255);
+ // setHue(BULB6,true,HueIndigo,100,255);
 }
 if(LIGHT>200){
   display.setTextSize(2);
@@ -268,11 +294,12 @@ if(LIGHT>200){
   display.clearDisplay();
   display.printf("Too Bright, Lights off\n");
   display.display();
-  setHue(BULB1,false,HueIndigo,100,255);
-  // setHue(BULB5,false,HueViolet,255,255);
+  // setHue(BULB1,false,HueIndigo,100,255);
+  setHue(BULB5,false,HueViolet,255,255);
   // setHue(BULB2,false,HueRed,255,255);
   // setHue(BULB3,false,HueGreen,255,255);
   // setHue(BULB4,false,HueBlue,255,255);
+  // setHue(BULB6,false,HueIndigo,100,255);
 }
 
 if(humidRH<30){
@@ -302,8 +329,26 @@ if(tempF>75){
   display.printf("Fan on\n");
   display.display();
 }
-if(tempF<65){
+if(tempF<72){
   wemoWrite(MYWEMO3, LOW);
 }
 }
 }
+void pixelFill(int start, int end, int color){
+  int i;
+  for(i=start; i<HUE6; i=i+1){
+    pixel.setPixelColor(i, color);
+    // delay(LEDDELAY); 
+    pixel.show();
+    // pixel.clear();
+     
+  } 
+  pixel.show();
+}
+// void hueFill(int start, int end, int color){
+//   if(myButton.isClicked){
+//     onOff!=onOff;
+//   }
+//   setHue(HUE6, onOff, HueViolet, 255, 255);
+// }
+
