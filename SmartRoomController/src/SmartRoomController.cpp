@@ -15,6 +15,8 @@
 #include "Hue.h"
 #include "IoTClassroom_CNM.h"
 #include <Encoder.h>
+#include <neopixel.h>
+
 
 #define OLED_RESET D4
 #define XPOS 0;
@@ -42,7 +44,6 @@ const int BULB5=5;
 int HUE6;
 int color;
 int myBulbs[]={1,2,3,4,5};
-int i;
 
 const int BUTTON=D15;// Encoder button
 int COLOR;
@@ -54,7 +55,7 @@ int prevPosition;
 int encPosition;
 const int MINPOS=0;
 const int MAXPOS=96;
-Encoder myEnc(D9, D8);
+Encoder myEnc(D9,D8);
 
 const int SWITCH=D6;//switches get stitches
 bool switchState; 
@@ -78,22 +79,34 @@ bool wemoState3;
 bool wemoState2;
 bool wemoState4;
 
+//neopixels
+//void pixelFill(int start, int end, int color);
+int start;
+int end;
+int i;
+int j;
+int pix16;
+const int PIXELCOUNT = 16;
+const int LEDDELAY = 50;
+
+
 Adafruit_SSD1306 display(OLED_RESET);//OLED display
 Adafruit_SSD1306 display2(OLED_RESET);
 Adafruit_BME280 bme;
+Adafruit_NeoPixel pixel(PIXELCOUNT, SPI1, WS2812B);
 
 // Let Device OS manage the connection to the Particle Cloud
 SYSTEM_MODE(SEMI_AUTOMATIC);
 
-
 void setup() {
+
 Serial.begin(9600);
 while(!Serial);
 waitFor(Serial.isConnected, 15000);
 pinMode(PHOTODIODE, INPUT);
 
 status = bme.begin(0x76);
-    if(status==false){
+  if(status==false){
         Serial.printf("BME at address 0x%02X failed to start", 0x76);
     }
 WiFi.on();
@@ -106,6 +119,10 @@ while(WiFi.connecting()){
 display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 display2.begin(SSD1306_SWITCHCAPVCC, 0x3D);
 
+pixel.begin();
+pixel.setBrightness(20);
+pixel.show();
+
 }
 
 // loop() runs over and over again, as quickly as it can execute.
@@ -113,8 +130,27 @@ void loop() {
 tempF=map(tempC,0.0,100.0,32.0,212.0);//BME maps
 inHg=map(pressPa,3386.0,108364.0,1.0,32.0);
 
-HUE6=map(POSITION, 0, 96, 1, 5);
+HUE6=map(POSITION, 0, 96, 0, 5);
+//pix16=map(POSITION, 0, 96, 0, 15);
+
 POSITION=myEnc.read();
+
+if (POSITION!=prevPosition){
+  prevPosition = POSITION;
+}
+
+if (POSITION<MINPOS){
+POSITION=MINPOS;
+myEnc.write(MINPOS);
+}
+if (POSITION > MAXPOS){
+  POSITION=MAXPOS;
+  myEnc.write(MAXPOS);
+}
+  for(i=0; i<16; i=i+2)
+      pixel.setPixelColor(HUE6,255, 0, 255);//neopixels
+      pixel.show();
+      pixel.clear();
 
 LIGHT=analogRead(PHOTODIODE);//light sensor
 
@@ -187,18 +223,18 @@ if(buttonState){
   display.printf("Hue light is on\n");
   display.display();
   setHue(BULB5,true,HueRed,100,255);
-  setHue(BULB1,true,HueBlue,100,255);
-  setHue(BULB2,true,HueOrange,100,255);
-  setHue(BULB3,true,HueGreen,100,255);
-  setHue(BULB4,true,HueViolet,100,255);
+  // setHue(BULB1,true,HueBlue,100,255);
+  // setHue(BULB2,true,HueOrange,100,255);
+  // setHue(BULB3,true,HueGreen,100,255);
+  // setHue(BULB4,true,HueViolet,100,255);
     //color++;
 }
 else{
   setHue(BULB5,false,HueRed,100,255);
-  setHue(BULB1,false,HueBlue,100,255);
-  setHue(BULB2,false,HueOrange,100,255);
-  setHue(BULB3,false,HueGreen,100,255);
-  setHue(BULB4,false,HueViolet,100,255);
+  // setHue(BULB1,false,HueBlue,100,255);
+  // setHue(BULB2,false,HueOrange,100,255);
+  // setHue(BULB3,false,HueGreen,100,255);
+  // setHue(BULB4,false,HueViolet,100,255);
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,32);
@@ -220,11 +256,11 @@ if(LIGHT<20){
   display.printf("Too Dark, Lights on\n");
   display.display();
   setHue(BULB1,true,HueIndigo,255,255);
-  setHue(BULB5,true,HueViolet,255,255);
-  setHue(BULB2,true,HueRed,255,255);
-  setHue(BULB3,true,HueGreen,255,255);
-  setHue(BULB4,true,HueBlue,255,255);
-
+  // setHue(BULB5,true,HueViolet,255,255);
+  // setHue(BULB2,true,HueRed,255,255);
+  // setHue(BULB3,true,HueGreen,255,255);
+  // setHue(BULB4,true,HueBlue,255,255);
+}
 if(LIGHT>200){
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -233,10 +269,10 @@ if(LIGHT>200){
   display.printf("Too Bright, Lights off\n");
   display.display();
   setHue(BULB1,false,HueIndigo,100,255);
-  setHue(BULB5,false,HueViolet,255,255);
-  setHue(BULB2,false,HueRed,255,255);
-  setHue(BULB3,false,HueGreen,255,255);
-  setHue(BULB4,false,HueBlue,255,255);
+  // setHue(BULB5,false,HueViolet,255,255);
+  // setHue(BULB2,false,HueRed,255,255);
+  // setHue(BULB3,false,HueGreen,255,255);
+  // setHue(BULB4,false,HueBlue,255,255);
 }
 
 if(humidRH<30){
@@ -271,4 +307,3 @@ if(tempF<65){
 }
 }
 }
-
