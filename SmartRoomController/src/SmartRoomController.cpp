@@ -171,7 +171,7 @@ if (POSITION > MAXPOS){
 for(i=0; i<=HUE6; i++) {
     //start = i*1;
     //HUE6 = start +1;
-    pixelFill(5, HUE6, rainbow[HUE6]);
+    pixelFill(0, HUE6, rainbow[HUE6]);
   
 }
 // hueFill(i=0, i>6, HueRainbow[i]);
@@ -252,6 +252,7 @@ if(buttonState){
   setHue(BULB3,true,HueGreen,100,255);
   setHue(BULB4,true,HueViolet,100,255);
   setHue(BULB6,true,HueIndigo,100,255);
+  // hueFill(0, HUE6, HueRainbow[i]);
     // color++;
 }
 else{
@@ -362,6 +363,6 @@ void pixelFill(int start, int end, int color){
 //   }
 //   setHue(HUE6, buttonState, HueViolet, 255, 255);
 //    myBulbs[i]=HUE6;
-//    0=BULB1;
+  
 // }
 
