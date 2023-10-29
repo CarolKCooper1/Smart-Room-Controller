@@ -46,7 +46,6 @@ int HUE6;
 int color;
 int myBulbs[]={1,2,3,4,5,6};
 int huePosition;
-// bool onOff;
 // void hueFill(int start, int end, int color);
 
 const int BUTTON=D15;// Encoder button
@@ -64,10 +63,6 @@ Encoder myEnc(D9,D8);
 const int SWITCH=D6;//switches get stitches
 bool switchState; 
 Button mySwitch(SWITCH);
-
-IoTTimer onTimer;
-IoTTimer offTimer;
-unsigned int currentTime;
 
 //wemo
 const int MYWEMO2=2;
@@ -116,13 +111,13 @@ status = bme.begin(0x76);
   if(status==false){
         Serial.printf("BME at address 0x%02X failed to start", 0x76);
     }
-// WiFi.on();
-// WiFi.clearCredentials();
-// WiFi.setCredentials("IoTNetwork");
-// WiFi.connect();
-// while(WiFi.connecting()){
-//   Serial.printf(".");
-// }
+WiFi.on();
+WiFi.clearCredentials();
+WiFi.setCredentials("IoTNetwork");
+WiFi.connect();
+while(WiFi.connecting()){
+  Serial.printf(".");
+}
 display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 display2.begin(SSD1306_SWITCHCAPVCC, 0x3D);
 
@@ -136,9 +131,8 @@ pixel.show();
 void loop() {
 tempF=map(tempC,0.0,100.0,32.0,212.0);//BME maps
 inHg=map(pressPa,3386.0,108364.0,1.0,32.0);
-
+//Hue light map to encoder
 HUE6=map(POSITION, 0, 96, 0, 6);
-//pix16=map(POSITION, 0, 96, 0, 15);
 
 POSITION=myEnc.read();
 
@@ -147,45 +141,32 @@ if(HUE6!=huePosition){
 }
 Serial.printf("hue6 position is%i\n",HUE6);
 
-// if(wemoState2!=prevWemoState2){
-//    prevWemoState2=wemoState2;
-// }
-// if(wemoState3!=prevWemoState3){
-//    prevWemoState3=wemoState3;
-// }
-// if(wemoState4!=prevWemoState4){
-//    prevWemoState4=wemoState4;
-// }
+//encoder position and adding pixel lights to the encoder
 if (POSITION!=prevPosition){
-  prevPosition = POSITION;
+    prevPosition = POSITION;
 }
 
 if (POSITION<MINPOS){
-POSITION=MINPOS;
-myEnc.write(MINPOS);
+    POSITION=MINPOS;
+    myEnc.write(MINPOS);
 }
 if (POSITION > MAXPOS){
-  POSITION=MAXPOS;
-  myEnc.write(MAXPOS);
+    POSITION=MAXPOS;
+    myEnc.write(MAXPOS);
 }
 for(i=0; i<=HUE6; i++) {
     //start = i*1;
     //HUE6 = start +1;
-    pixelFill(0, HUE6, rainbow[HUE6]);
-  
+    pixelFill(0, HUE6, rainbow[HUE6]); 
 }
-// hueFill(i=0, i>6, HueRainbow[i]);
 
 LIGHT=analogRead(PHOTODIODE);//light sensor
-
-currentTime=millis();
 
 tempC=bme.readTemperature();//BME
 pressPa=bme.readPressure();
 humidRH=bme.readHumidity();
 
 //OLED
-// onTimer.startTimer(5000);
 display2.setTextSize(2);
 display2.setTextColor(WHITE);
 display2.setCursor(10,0);
@@ -194,13 +175,13 @@ display2.printf("TF %0.1f\n BP %0.2f\n HM %0.2f\n LT %i\n", tempF, inHg, humidRH
 display2.display();
 
 //switch seperating the automatic from the manual
-if (mySwitch.isClicked()){
+if(mySwitch.isClicked()){
   switchState=!switchState;
 }
 //manual state
 if(switchState){
 
-if(myButton4.isClicked()){//Wemo 4
+if(myButton4.isClicked()){//Wemo 4 Humidifier button
   wemoState4=!wemoState4;
 }
 if(wemoState4){
@@ -212,19 +193,19 @@ else{
   Serial.printf("Turning off Wemo %i\n", MYWEMO4);
 }
 
-if(myButton3.isClicked()){//Wemo 3
+if(myButton3.isClicked()){//Wemo 3 Fan Button
   wemoState3=!wemoState3;
 }
 if(wemoState3){
   wemoWrite(MYWEMO3,wemoState3);
- Serial.printf("Turning on Wemo %i\n", MYWEMO3);
+  Serial.printf("Turning on Wemo %i\n", MYWEMO3);
 }
 else{
   wemoWrite(MYWEMO3,wemoState3);
   Serial.printf("Turning off Wemo %i\n", MYWEMO3);
 }
 
-if(myButton2.isClicked()){//Wemo 2
+if(myButton2.isClicked()){//Wemo 2 Sculpture Button
   wemoState2=!wemoState2;
 }
 if(wemoState2){
@@ -239,6 +220,7 @@ else{
 if(myButton.isClicked()){//encoder button controlling hue light
    buttonState=!buttonState;
 }
+//encoder button turning the light on and off
 if(buttonState){
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -274,7 +256,7 @@ else{
 if(!switchState){
 //automatic state
 
-//hue light coming on automatically under 20 and going off over 200
+//Auto light coming on automatically under 15
 if(LIGHT<15){
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -289,6 +271,7 @@ if(LIGHT<15){
   setHue(BULB4,true,HueBlue,255,255);
   setHue(BULB6,true,HueOrange,100,255);
 }
+//Auto light off
 if(LIGHT>200){
   display.setTextSize(2);
   display.setTextColor(WHITE);
@@ -303,7 +286,7 @@ if(LIGHT>200){
   setHue(BULB4,false,HueBlue,255,255);
   setHue(BULB6,false,HueOrange,100,255);
 }
-
+//Auto Humidifer on
 if(humidRH<30){
   wemoWrite(MYWEMO4,HIGH);
   display.setTextSize(2);
@@ -313,6 +296,7 @@ if(humidRH<30){
   display.printf("Humidifier On\n");
   display.display();
 }
+//Humidifier off
 if(humidRH>50){
   wemoWrite(MYWEMO4,LOW);
   display.setTextSize(2);
@@ -322,6 +306,7 @@ if(humidRH>50){
   display.printf("Humidifier off\n");
   display.display();
 }
+//Automatic fan on
 if(tempF>75){
   wemoWrite(MYWEMO3, HIGH);
   display.setTextSize(2);
@@ -331,9 +316,11 @@ if(tempF>75){
   display.printf("Fan on\n");
   display.display();
 }
+//Automatic fan off
 if(tempF<72){
   wemoWrite(MYWEMO3, LOW);
 }
+//Automatic spotlight
 if(LIGHT<5){
   wemoWrite(MYWEMO4, HIGH);
   display.setTextSize(2);
